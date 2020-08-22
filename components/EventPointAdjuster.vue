@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- TODO: デバッグ用 -->
     <v-btn @click="debug">debug</v-btn>
     <v-text-field
       v-model="currentEventPointString"
