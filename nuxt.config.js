@@ -48,6 +48,7 @@ export default {
     '@nuxtjs/eslint-module',
     // Doc: https://github.com/nuxt-community/stylelint-module
     '@nuxtjs/stylelint-module',
+    '@nuxtjs/vuetify',
   ],
   /*
    ** Nuxt.js modules
@@ -58,4 +59,4 @@ export default {
    ** See https://nuxtjs.org/api/configuration-build/
    */
   build: {},
-}
+};
