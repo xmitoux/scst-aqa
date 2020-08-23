@@ -26,36 +26,31 @@
     <v-container fluid>
       <v-row>
         <v-col cols="3">
-          <v-checkbox
-            v-model="targetDifficultyValues"
-            color="red lighten-1"
-            :label="getDifficultyString(DIFFICULTY_ADVANCEDPLUS)"
-            :value="DIFFICULTY_ADVANCEDPLUS"
-          />
+          <DifficultyClearRankSelector
+            v-model="targetDifficultyClearRank[common.DIFFICULTY_ADVANCEDPLUS]"
+            :difficulty-value="common.DIFFICULTY_ADVANCEDPLUS"
+          ></DifficultyClearRankSelector>
         </v-col>
+
         <v-col cols="3">
-          <v-checkbox
-            v-model="targetDifficultyValues"
-            color="amber"
-            :label="getDifficultyString(DIFFICULTY_ADVANCED)"
-            :value="DIFFICULTY_ADVANCED"
-          />
+          <DifficultyClearRankSelector
+            v-model="targetDifficultyClearRank[common.DIFFICULTY_ADVANCED]"
+            :difficulty-value="common.DIFFICULTY_ADVANCED"
+          ></DifficultyClearRankSelector>
         </v-col>
+
         <v-col cols="3">
-          <v-checkbox
-            v-model="targetDifficultyValues"
-            color="green accent-3"
-            :label="getDifficultyString(DIFFICULTY_INTERMEDIATE)"
-            :value="DIFFICULTY_INTERMEDIATE"
-          />
+          <DifficultyClearRankSelector
+            v-model="targetDifficultyClearRank[common.DIFFICULTY_INTERMEDIATE]"
+            :difficulty-value="common.DIFFICULTY_INTERMEDIATE"
+          ></DifficultyClearRankSelector>
         </v-col>
+
         <v-col cols="3">
-          <v-checkbox
-            v-model="targetDifficultyValues"
-            color="blue"
-            :label="getDifficultyString(DIFFICULTY_BEGINNER)"
-            :value="DIFFICULTY_BEGINNER"
-          />
+          <DifficultyClearRankSelector
+            v-model="targetDifficultyClearRank[common.DIFFICULTY_BEGINNER]"
+            :difficulty-value="common.DIFFICULTY_BEGINNER"
+          ></DifficultyClearRankSelector>
         </v-col>
       </v-row>
     </v-container>
@@ -101,12 +96,17 @@
                 :key="requiredLive.eventPoint"
               >
                 <td :style="getDifficultyColor(requiredLive.difficulty)">
-                  {{ getDifficultyString(requiredLive.difficulty) }}
+                  {{ common.difficultyLabels[requiredLive.difficulty].name }}
                 </td>
                 <td>
-                  <v-chip :color="getClearRankColor(requiredLive.clearRank)">{{
-                    getClearRankString(requiredLive.clearRank)
-                  }}</v-chip>
+                  <v-chip
+                    :color="
+                      common.clearRankLabels[requiredLive.clearRank].color
+                    "
+                    ><span style="color: black;">{{
+                      common.clearRankLabels[requiredLive.clearRank].name
+                    }}</span></v-chip
+                  >
                 </td>
                 <td>{{ requiredLive.eventPoint }}</td>
                 <td>{{ requiredLive.liveN }}</td>
@@ -126,65 +126,9 @@
 </template>
 
 <script>
-import BigNumber from 'bignumber.js';
-
-const DIFFICULTY_BEGINNER = 0;
-const DIFFICULTY_INTERMEDIATE = 1;
-const DIFFICULTY_ADVANCED = 2;
-const DIFFICULTY_ADVANCEDPLUS = 3;
-
-const CLEAR_RANK_D = 0;
-const CLEAR_RANK_C = 1;
-const CLEAR_RANK_B = 2;
-const CLEAR_RANK_A = 3;
-const CLEAR_RANK_S = 4;
-
-class EventPoint {
-  constructor(difficulty, clearRank, value) {
-    this.difficulty = difficulty;
-    this.clearRank = clearRank;
-    this.value = value;
-  }
-}
-
-const EVENT_POINTS_BEGINNER = [
-  new EventPoint(DIFFICULTY_BEGINNER, CLEAR_RANK_D, 225),
-  new EventPoint(DIFFICULTY_BEGINNER, CLEAR_RANK_C, 237),
-  new EventPoint(DIFFICULTY_BEGINNER, CLEAR_RANK_B, 250),
-  new EventPoint(DIFFICULTY_BEGINNER, CLEAR_RANK_A, 262),
-  new EventPoint(DIFFICULTY_BEGINNER, CLEAR_RANK_S, 275),
-];
-
-const EVENT_POINTS_INTERMEDIATE = [
-  new EventPoint(DIFFICULTY_INTERMEDIATE, CLEAR_RANK_D, 345),
-  new EventPoint(DIFFICULTY_INTERMEDIATE, CLEAR_RANK_C, 360),
-  new EventPoint(DIFFICULTY_INTERMEDIATE, CLEAR_RANK_B, 375),
-  new EventPoint(DIFFICULTY_INTERMEDIATE, CLEAR_RANK_A, 390),
-  new EventPoint(DIFFICULTY_INTERMEDIATE, CLEAR_RANK_S, 405),
-];
-
-const EVENT_POINTS_ADVANCED = [
-  new EventPoint(DIFFICULTY_ADVANCED, CLEAR_RANK_D, 525),
-  new EventPoint(DIFFICULTY_ADVANCED, CLEAR_RANK_C, 543),
-  new EventPoint(DIFFICULTY_ADVANCED, CLEAR_RANK_B, 562),
-  new EventPoint(DIFFICULTY_ADVANCED, CLEAR_RANK_A, 581),
-  new EventPoint(DIFFICULTY_ADVANCED, CLEAR_RANK_S, 600),
-];
-
-const EVENT_POINTS_ADVANCEDPLUS = [
-  new EventPoint(DIFFICULTY_ADVANCEDPLUS, CLEAR_RANK_D, 815),
-  new EventPoint(DIFFICULTY_ADVANCEDPLUS, CLEAR_RANK_C, 830),
-  new EventPoint(DIFFICULTY_ADVANCEDPLUS, CLEAR_RANK_B, 845),
-  new EventPoint(DIFFICULTY_ADVANCEDPLUS, CLEAR_RANK_A, 860),
-  new EventPoint(DIFFICULTY_ADVANCEDPLUS, CLEAR_RANK_S, 875),
-];
-
-const importData = () => ({
-  DIFFICULTY_BEGINNER,
-  DIFFICULTY_INTERMEDIATE,
-  DIFFICULTY_ADVANCED,
-  DIFFICULTY_ADVANCEDPLUS,
-});
+import DifficultyClearRankSelector from '@/components/DifficultyClearRankSelector';
+import * as util from '@/components/EventPointAdjusterUtil';
+import * as common from '@/util/const/common';
 
 const isInteger = (numString) => {
   return (
@@ -198,100 +142,38 @@ const parseInteger = (numString) => {
   return isInteger(numString) ? Number(numString) : null;
 };
 
-const prepareEventPoints = (targetDifficultyValues, specialAttackPercent) => {
-  const eventPoints = [];
-
-  if (targetDifficultyValues.includes(0)) {
-    eventPoints.push(
-      ...multiplySpecialAttackPercent(
-        EVENT_POINTS_BEGINNER,
-        specialAttackPercent
-      )
-    );
-  }
-
-  if (targetDifficultyValues.includes(1)) {
-    eventPoints.push(
-      ...multiplySpecialAttackPercent(
-        EVENT_POINTS_INTERMEDIATE,
-        specialAttackPercent
-      )
-    );
-  }
-
-  if (targetDifficultyValues.includes(2)) {
-    eventPoints.push(
-      ...multiplySpecialAttackPercent(
-        EVENT_POINTS_ADVANCED,
-        specialAttackPercent
-      )
-    );
-  }
-
-  if (targetDifficultyValues.includes(3)) {
-    eventPoints.push(
-      ...multiplySpecialAttackPercent(
-        EVENT_POINTS_ADVANCEDPLUS,
-        specialAttackPercent
-      )
-    );
-  }
-
-  return eventPoints;
-};
-
-const multiplySpecialAttackPercent = (eventPoints, specialAttackPercent) => {
-  const specialAttackRatio = BigNumber(1).plus(
-    BigNumber(specialAttackPercent).div(100)
-  );
-
-  return eventPoints.map(({ difficulty, clearRank, value }) => ({
-    value: BigNumber(value)
-      .times(specialAttackRatio)
-      .integerValue(BigNumber.ROUND_DOWN) // 小数点以下切り捨て
-      .toNumber(),
-    difficulty,
-    clearRank,
-  }));
-};
-
-const aggregateDPResults = (dpResults, targetDifficultyValues) => {
+const aggregateDPResults = (dpResults, eventPoints) => {
   const requiredLives = [];
 
-  // 難易度降順で集計するため選択された難易度をソート
-  const targetDifficultyValuesDesc = targetDifficultyValues
-    .concat() // ソートで破壊しないようコピー
-    .sort((a, b) => b - a);
+  let tmpDPRsults = dpResults.concat(); // DP結果を集計処理用にコピー
+  while (tmpDPRsults.length) {
+    const dpResultEventPointValue = tmpDPRsults[0];
 
-  // 難易度ごとに結果を集計
-  for (const difficultyValue of targetDifficultyValuesDesc) {
-    const resultsFilteredByDifficulty = dpResults.filter(
-      (eventPoint) => eventPoint.difficulty === difficultyValue
+    // 複数選択されたポイントを集計
+    const sameEventPoints = tmpDPRsults.filter(
+      (eventPoint) => eventPoint === dpResultEventPointValue
     );
 
-    // クリアランクごと(降順)に結果を集計
-    for (
-      let tmpClearRank = CLEAR_RANK_S;
-      tmpClearRank >= CLEAR_RANK_D;
-      tmpClearRank--
-    ) {
-      const results = resultsFilteredByDifficulty.filter(
-        (eventPoint) => eventPoint.clearRank === tmpClearRank
-      );
+    // イベントポイント定義
+    const eventPoint = eventPoints.find(
+      (eventPoint) => eventPoint.value === dpResultEventPointValue
+    );
 
-      const liveN = results.length;
-      if (liveN > 0) {
-        const result = {
-          difficulty: difficultyValue,
-          clearRank: tmpClearRank,
-          eventPoint: results[0].value,
-          liveN,
-          eventPointSum: results[0].value * liveN,
-        };
+    const liveN = sameEventPoints.length;
+    const result = {
+      difficulty: eventPoint.difficulty,
+      clearRank: eventPoint.clearRank,
+      eventPoint: eventPoint.value,
+      liveN,
+      eventPointSum: eventPoint.value * liveN,
+    };
 
-        requiredLives.push(result);
-      }
-    }
+    requiredLives.push(result);
+
+    // 複数選択されたポイントをDP結果から削除
+    tmpDPRsults = tmpDPRsults.filter(
+      (eventPoint) => eventPoint !== dpResultEventPointValue
+    );
   }
 
   return requiredLives;
@@ -300,19 +182,23 @@ const aggregateDPResults = (dpResults, targetDifficultyValues) => {
 export default {
   name: 'PointAdjuster',
 
+  components: {
+    DifficultyClearRankSelector,
+  },
+
   data() {
     return {
       currentEventPointString: '0',
-      targetEventPointString: '919919',
+      targetEventPointString: '919919', // TODO: デバッグ用
       specialAttackPercent: '0',
-      targetDifficultyValues: [],
-      selectedEvnetPoints: [],
+      targetDifficultyClearRank: new util.DifficultyClearRank(),
       dpResults: [],
       requiredLives: [],
       dialogInvalid: false,
       dialogInvalidMessage: '',
       dialogRequiredLives: false,
-      ...importData(),
+      util,
+      common,
     };
   },
 
@@ -329,23 +215,9 @@ export default {
     },
   },
 
-  created() {
-    // 初期表示時は難易度全選択
-    [
-      DIFFICULTY_BEGINNER,
-      DIFFICULTY_INTERMEDIATE,
-      DIFFICULTY_ADVANCED,
-      DIFFICULTY_ADVANCEDPLUS,
-    ].forEach((difficultyValue) =>
-      this.targetDifficultyValues.push(difficultyValue)
-    );
-  },
-
   methods: {
     debug() {
-      const hoge = { fuga: 'foo' };
-      const str = 'fuga';
-      console.log(hoge[str]);
+      console.log(this.targetDifficultyClearRank);
     },
 
     showInvalidDialog(message) {
@@ -358,21 +230,26 @@ export default {
         return;
       }
 
-      const eventPoints = prepareEventPoints(
-        this.targetDifficultyValues,
+      const eventPoints = util.prepareEventPoints(
+        this.targetDifficultyClearRank,
         parseInteger(this.specialAttackPercent)
       );
 
-      const dpResults = this.calculateDP(eventPoints, this.requiredEventPoint);
+      const eventPointValues = eventPoints.map(
+        (eventPoint) => eventPoint.value
+      );
+
+      const dpResults = this.calculateDP(
+        eventPointValues,
+        this.requiredEventPoint
+      );
+
       if (dpResults.length === 0) {
         this.showInvalidDialog('計算の結果、ポイント調整は不可能でした。');
         return;
       }
 
-      this.requiredLives = aggregateDPResults(
-        dpResults,
-        this.targetDifficultyValues
-      );
+      this.requiredLives = aggregateDPResults(dpResults, eventPoints);
 
       this.dialogRequiredLives = true;
     },
@@ -394,7 +271,7 @@ export default {
         return false;
       }
 
-      if (this.targetDifficultyValues.length === 0) {
+      if (this.targetDifficultyClearRank.isEmpty()) {
         this.showInvalidDialog('難易度を選択してください。');
         return false;
       }
@@ -411,92 +288,11 @@ export default {
       return true;
     },
 
-    getDifficultyString(difficultyValue) {
-      switch (difficultyValue) {
-        case DIFFICULTY_BEGINNER:
-          return '初級';
-
-        case DIFFICULTY_INTERMEDIATE:
-          return '中級';
-
-        case DIFFICULTY_ADVANCED:
-          return '上級';
-
-        case DIFFICULTY_ADVANCEDPLUS:
-          return '上級+';
-
-        default:
-          return '不明な難易度';
-      }
-    },
-
     getDifficultyColor(difficultyValue) {
-      switch (difficultyValue) {
-        case DIFFICULTY_BEGINNER:
-          return { color: 'white', background: '#2196F3' };
-
-        case DIFFICULTY_INTERMEDIATE:
-          return { color: 'white', background: '#00E676' };
-
-        case DIFFICULTY_ADVANCED:
-          return { color: 'white', background: '#FFC107' };
-
-        case DIFFICULTY_ADVANCEDPLUS:
-          return { color: 'white', background: '#F44336' };
-
-        default:
-          return { color: 'white', background: '#212121' };
-      }
-    },
-
-    getClearRankString(clearRankValue) {
-      switch (clearRankValue) {
-        case CLEAR_RANK_D:
-          return 'D';
-
-        case CLEAR_RANK_C:
-          return 'C';
-
-        case CLEAR_RANK_B:
-          return 'B';
-
-        case CLEAR_RANK_A:
-          return 'A';
-
-        case CLEAR_RANK_S:
-          return 'S';
-
-        default:
-          return '不明なクリアランク';
-      }
-    },
-
-    getClearRankColor(clearRankValue) {
-      switch (clearRankValue) {
-        case CLEAR_RANK_D:
-          return '#A5D6A7';
-        // return { background: "white", color: "#A5D6A7" };
-
-        case CLEAR_RANK_C:
-          return '#FFAB91';
-        // return { background: "white", color: "#D84315" };
-
-        case CLEAR_RANK_B:
-          return '#EEEEEE';
-        // return { background: "white", color: "#CFD8DC" };
-
-        case CLEAR_RANK_A:
-          return '#FFF59D';
-        // return { background: "white", color: "#FFF59D" };
-
-        case CLEAR_RANK_S:
-          return '#E1BEE7';
-        // return { background: "white", color: "#E1BEE7" };
-
-        default:
-          return '#9E9E9E';
-        // return { background: "white", color: "#9E9E9E" };
-      }
+      return {
+        background: common.difficultyLabels[difficultyValue].color,
+        color: 'white',
+      };
     },
 
     calculateDP(eventPoints, W) {
@@ -512,11 +308,11 @@ export default {
       // DP
       // 参考: https://qiita.com/drken/items/ace3142967c4f01d42e9
       for (let i = 0; i < eventPointN; i++) {
-        for (let w = eventPoints[i].value; w <= W; w++) {
-          const liveN = dp[w - eventPoints[i].value] + 1;
+        for (let w = eventPoints[i]; w <= W; w++) {
+          const liveN = dp[w - eventPoints[i]] + 1;
           if (liveN <= dp[w]) {
             dp[w] = liveN;
-            prev[w] = w - eventPoints[i].value;
+            prev[w] = w - eventPoints[i];
           }
         }
       }
@@ -528,7 +324,7 @@ export default {
       let i = eventPointN - 1;
       while (i >= 0) {
         const tmpEventPoint = eventPoints[i];
-        if (prev[tmpW] === tmpW - tmpEventPoint.value) {
+        if (prev[tmpW] === tmpW - tmpEventPoint) {
           // 選んでいた場合
           dpResults.push(tmpEventPoint);
 
