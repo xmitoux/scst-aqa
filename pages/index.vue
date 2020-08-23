@@ -1,15 +1,15 @@
 <template>
   <div>
-    <PointAdjuster />
+    <EventPointAdjuster />
   </div>
 </template>
 
 <script>
-import PointAdjuster from '@/components/PointAdjuster';
+import EventPointAdjuster from '@/components/EventPointAdjuster';
 
 export default {
   components: {
-    PointAdjuster,
+    EventPointAdjuster,
   },
 };
 </script>
